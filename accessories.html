@@ -1,0 +1,150 @@
+<?php
+session_start();
+include('includes/config.php');
+
+if (!$conn) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// Initialize total accessories amount
+$totalAccessoriesAmount = 0;
+$accessoriesData = [];
+
+// Handle form submission
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (isset($_POST['accessories'])) {
+        $selectedAccessories = $_POST['accessories'];
+        $totalAmount = 0;
+
+        // Fetch selected accessories details
+        foreach ($selectedAccessories as $accessoryId) {
+            $sql = "SELECT price FROM accessories WHERE id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $accessoryId);
+            $stmt->execute();
+            $stmt->bind_result($price);
+            while ($stmt->fetch()) {
+                $totalAmount += $price;
+            }
+            $stmt->close();
+        }
+
+        // Store total amount in session
+        $_SESSION['accessories_amount'] = $totalAmount;
+
+        // Redirect to payment page or handle payment processing
+        header("Location: payment.php");
+        exit;
+    }
+} else {
+    // Fetch accessories data
+    $sql = "SELECT id, name, price FROM accessories";
+    $result = $conn->query($sql);
+
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $accessoriesData[] = $row;
+        }
+    } else {
+        $accessoriesData = [];
+    }
+}
+$conn->close();
+?>
+
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Select Accessories</title>
+<style>
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+table, th, td {
+    border: 1px solid black;
+}
+th, td {
+    padding: 10px;
+    text-align: left;
+}
+</style>
+</head>
+<body>
+
+<?php if ($_SERVER['REQUEST_METHOD'] == 'POST'): ?>
+    <h2>Payment Details</h2>
+    <?php
+    $bikeRentalAmount = isset($_SESSION['totalamount']) ? $_SESSION['totalamount'] : 0;
+    $accessoriesAmount = isset($_SESSION['accessories_amount']) ? $_SESSION['accessories_amount'] : 0;
+    $totalAmount = $bikeRentalAmount + $accessoriesAmount;
+    ?>
+    <p>Bike Rental Amount: ₹<?php echo number_format($bikeRentalAmount, 2); ?></p>
+    <p>Accessories Amount: ₹<?php echo number_format($accessoriesAmount, 2); ?></p>
+    <p>Total Amount: ₹<?php echo number_format($totalAmount, 2); ?></p>
+
+    <!-- Payment form -->
+    <form method="post" action="process_payment.php">
+        <input type="hidden" name="totalamount" value="<?php echo $totalAmount; ?>">
+        <!-- Add payment options here -->
+        <input type="submit" value="Pay Now">
+    </form>
+<?php else: ?>
+    <form id="accessoriesForm" method="post" action="">
+        <table>
+            <thead>
+                <tr>
+                    <th>Accessory</th>
+                    <th>Price</th>
+                    <th>Select</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                if (count($accessoriesData) > 0) {
+                    foreach ($accessoriesData as $row) {
+                        echo '<tr>';
+                        echo '<td>' . htmlspecialchars($row['name']) . '</td>';
+                        echo '<td>₹' . number_format($row['price'], 2) . '</td>';
+                        echo '<td><input type="checkbox" name="accessories[]" value="' . $row['id'] . '" data-price="' . $row['price'] . '"></td>';
+                        echo '</tr>';
+                    }
+                } else {
+                    echo '<tr><td colspan="3">No accessories available.</td></tr>';
+                }
+                ?>
+            </tbody>
+        </table>
+        <p>Total Accessories Amount: ₹<span id="totalAmount">0.00</span></p>
+        <input type="submit" value="Proceed to Checkout">
+    </form>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var checkboxes = document.querySelectorAll('input[name="accessories[]"]');
+        var totalAmountSpan = document.getElementById('totalAmount');
+        
+        function updateTotal() {
+            var total = 0;
+            checkboxes.forEach(function(checkbox) {
+                if (checkbox.checked) {
+                    total += parseFloat(checkbox.getAttribute('data-price'));
+                }
+            });
+            totalAmountSpan.textContent = total.toFixed(2);
+        }
+
+        checkboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('change', updateTotal);
+        });
+
+        // Initialize total amount on page load
+        updateTotal();
+    });
+    </script>
+<?php endif; ?>
+
+</body>
+</html>

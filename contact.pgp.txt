@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Info - Jana Suraksha Medicals</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css"> <!-- Include Font Awesome for icons -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Your page content -->
+    <div class="container mt-5">
+        <h1>Contact Info</h1>
+        <p>Follow us on social media:</p>
+        <div class="social-icons">
+            <a href="https://www.facebook.com/" target="_blank" class="fab fa-facebook"></a>
+            <a href="https://twitter.com/" target="_blank" class="fab fa-twitter"></a>
+            <a href="https://www.instagram.com/" target="_blank" class="fab fa-instagram"></a>
+            <a href="https://wa.me/" target="_blank" class="fab fa-whatsapp"></a>
+            <a href="https://www.google.com/" target="_blank" class="fab fa-google"></a>
+        </div>
+    </div>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+</body>
+</html>

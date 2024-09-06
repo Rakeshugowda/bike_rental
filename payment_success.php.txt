@@ -1,0 +1,80 @@
+<?php
+session_start();
+include('includes/config.php');
+require 'path/to/PHPMailer/PHPMailerAutoload.php';
+
+if (!isset($_SESSION['invoice_data'])) {
+    header('location:index.php');
+    exit;
+}
+
+$invoice_data = $_SESSION['invoice_data'];
+$email = $invoice_data['email'];
+
+// Send confirmation email using PHPMailer
+$mail = new PHPMailer;
+$mail->isSMTP();
+$mail->Host = 'smtp.example.com'; // Set the SMTP server to send through
+$mail->SMTPAuth = true;
+$mail->Username = 'your_email@example.com'; // SMTP username
+$mail->Password = 'your_email_password'; // SMTP password
+$mail->SMTPSecure = 'tls';
+$mail->Port = 587;
+
+$mail->setFrom('no-reply@example.com', 'Bike Rental Portal');
+$mail->addAddress($email);
+
+$mail->isHTML(true);
+$mail->Subject = 'Payment Successful';
+$mail->Body = "<p>Your payment of ₹{$invoice_data['amount']} was successful.</p>
+               <p>Vehicle: {$invoice_data['vehicle']}</p>
+               <p>Amount Paid: ₹{$invoice_data['amount']}</p>
+               <p>Address: {$invoice_data['address']}</p>
+               <p>Mobile: {$invoice_data['mobile']}</p>
+               <p>Email: {$invoice_data['email']}</p>";
+
+if (!$mail->send()) {
+    echo 'Message could not be sent. Mailer Error: ', $mail->ErrorInfo;
+} else {
+    echo 'Message has been sent';
+}
+
+// Clear session invoice data
+unset($_SESSION['invoice_data']);
+?>
+
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <!-- Meta tags, styles, and scripts -->
+    <!-- ... (same as before) -->
+</head>
+<body>
+    <!-- Header -->
+    <?php include('includes/header.php'); ?>
+    <!-- /Header -->
+
+    <!-- Invoice Section -->
+    <section class="invoice-section">
+        <div class="container">
+            <div class="form-container">
+                <h2 class="text-center">Payment Successful</h2>
+                <div class="invoice-details">
+                    <p>Vehicle: <?php echo htmlentities($invoice_data['vehicle']); ?></p>
+                    <p>Amount Paid: ₹<?php echo htmlentities($invoice_data['amount']); ?></p>
+                    <p>Address: <?php echo htmlentities($invoice_data['address']); ?></p>
+                    <p>Mobile: <?php echo htmlentities($invoice_data['mobile']); ?></p>
+                    <p>Email: <?php echo htmlentities($invoice_data['email']); ?></p>
+                </div>
+                <div class="text-center">
+                    <a href="index.php" class="btn">Go to Home</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- /Invoice Section -->
+
+    <!-- Scripts -->
+    <!-- ... (same as before) -->
+</body>
+</html>
